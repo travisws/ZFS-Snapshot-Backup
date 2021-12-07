@@ -3,12 +3,12 @@ new=7
 old=8
 
 #TODO Auto add new datesets by scaning for new datasets by possibly using (zfs list) and adding it to a array
-#Add path to zfs dataset to backup 
-declare -a datasets=()
+#Add path to zfs dataset to backup
+declare -a datasets=("ssd/minecraft")
 
 #Runs through the array and zfs destoroys all zfs dataset ending with 9th day
 
-#Run a Zfs rename command to rename a dataset form the array starting with @8 moving it to @9 and working it way down from 8 to 9, 7 to 8, 6 to 7, 5 to 6, 4 to 5, 3 to 4, 2 to 3 and 1 to 2. 
+#Run a Zfs rename command to rename a dataset form the array starting with @8 moving it to @9 and working it way down from 8 to 9, 7 to 8, 6 to 7, 5 to 6, 4 to 5, 3 to 4, 2 to 3 and 1 to 2.
 #it makes room for new snapshots to be added and removes any snapshots the end in @9 witch can be change by changing the 2 variables (new) and (old) as long as new is lower then old by 1 digit.
 snapshot_rename(){
         for dataset in "${datasets[@]}"
@@ -28,7 +28,7 @@ snapshot_rename(){
                                 if [ $(zfs list -t snapshot -o name | grep 9) ]; then
 
                                         #uncommet when all testing is done. Just in case of data loss
-                                        ##zfs destroy $/dataset@9
+                                        zfs destroy $dataset@9
                                         echo "hello"
 
                                 fi
@@ -36,8 +36,24 @@ snapshot_rename(){
                                 zfs rename $dataset@$new $dataset@$old
                                 new=$(( $new - 1 ))
                                 old=$(( $old - 1 ))
+
                         done
+
+                        for dataset in "${datasets[@]}"
+                        do
+                                zfs snapshot -r $dataset@1
+                        done;
+
+                else
+
+                        for dataset in "${datasets[@]}"
+                        do
+                                zfs snapshot -r $dataset@1
+                        done;
+
                 fi
+
         done
 }
+
 snapshot_rename
